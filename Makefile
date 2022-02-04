@@ -1,5 +1,6 @@
 
-CC= gcc
+#CC= gcc
+CC= g++ -std=c++11
 CCOPTS= -Wall -g -DLOGGER_ALWAYS_FLUSH
 
 all: compareResults
