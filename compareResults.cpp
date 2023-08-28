@@ -27,7 +27,7 @@ void parse_results(const char *res_file, unsigned long ***file_results_ptr, int 
     for (i = 0; i < num_states; i++)
     {
         f_results[i] = (unsigned long *)malloc(sizeof(unsigned long) * 3);  //arrival time, wt time, num Hops
-        f_results[i][0] = 0;f_results[i][1] = 0;f_results[i][2] = 0;
+        f_results[i][0] = infy;f_results[i][1] = infy;f_results[i][2] = infy;
     }
     int nodeId;//,arr,wt;
     unsigned long arr,wt;
@@ -54,18 +54,15 @@ void compare_results(unsigned long **file1_results,unsigned long **file2_results
     unsigned long max_diff = 0;
     double mean_diff = 0;
     unsigned long sum_diff = 0;
-    unsigned long computedVal1 = 0;
+//    unsigned long computedVal1 = 0;
     int num_diffs = 0, num_threshs = 0, file1_gr=0;
-    unsigned long max_file_gr_diff = 0; int file1_gr_maxdiff_st = 0;
+    unsigned long max_file_gr_diff = 0, max_shrtst_diff = 0; int file1_gr_maxdiff_st = 0;
     for (i = 0; i< num_states; i++)
     {
-        if ((file1_results[i][0] != infy) && (file1_results[i][0] != -1))
-            computedVal1=fmst_coeff*file1_results[i][0]+file1_results[i][1];        //2^31*arr+wt/num_hops
-        else
-            computedVal1=4000000000000000000;
-        if (computedVal1 != file2_results[i][0])
+        if (file1_results[i][0] != file2_results[i][0])
         {
-            diff[i][0] = computedVal1 - file2_results[i][0];
+            cout << i << " arrival: file1 " << file1_results[i][0] << " file2 " << file2_results[i][0] << endl;
+            diff[i][0] = file1_results[i][0] - file2_results[i][0];
             if (diff[i][0] < 0)
                 diff[i][0] *= -1;
             if (diff[i][0] > DIFF_THRESH)
@@ -74,31 +71,34 @@ void compare_results(unsigned long **file1_results,unsigned long **file2_results
                if (diff[i][0] > max_file_gr_diff)
                {
                    max_file_gr_diff = diff[i][0];
-                   file1_gr_maxdiff_st = i;
+//                   file1_gr_maxdiff_st = i;
                }
             }
         }
-        if (diff[i][0] > 0)
+        if (file1_results[i][1] != file2_results[i][1])
         {
-            num_diffs++;
-            if (diff[i][0] > DIFF_THRESH)
-               num_threshs++;
-            if (diff[i][0] > max_diff)
+            cout << i << " length: file1 " << file1_results[i][1] << " file2 " << file2_results[i][2] << endl;
+            diff[i][1] = file1_results[i][1] - file2_results[i][1];
+            if (diff[i][1] < 0)
+                diff[i][1] *= -1;
+            if (diff[i][1] > DIFF_THRESH)
             {
-                max_diff_state = i;
-                if (diff[i][0] > max_diff)
-                    max_diff = diff[i][0];
-                else
-                    max_diff = diff[i][1];
+               file1_gr++;
+               if (diff[i][1] > max_shrtst_diff)
+               {
+                   max_shrtst_diff = diff[i][1];
+                   file1_gr_maxdiff_st = i;
+               }
             }
-            sum_diff += diff[i][0];
+            num_diffs++;
+            sum_diff += diff[i][1];
         }
     }
     mean_diff = sum_diff/num_states;
     
     printf("Max Diff = %lu; Max_Diff_state = %d; Mean Diff = %f; \
-           Num Diffs = %d; total Diffs = %lu. Values of maxDiff: File1-arr: %lu, File1-wt: %lu; File2-arr: %lu\n",
-            max_diff, max_diff_state, mean_diff, num_diffs, sum_diff, file1_results[max_diff_state][0],file1_results[max_diff_state][1], file2_results[max_diff_state][0]);
+           Num Diffs = %d; total Diffs = %lu. Values of maxDiff: File1-arr: %lu, File1-length: %lu; File2-arr: %lu, File2-length: %lu\n",
+           max_shrtst_diff, file1_gr_maxdiff_st, mean_diff, num_diffs, sum_diff, file1_results[file1_gr_maxdiff_st][0],file1_results[file1_gr_maxdiff_st][1], file2_results[file1_gr_maxdiff_st][0], file2_results[file1_gr_maxdiff_st][1]);
     
     //Num Threshs = %d; File1 bigger = %d; File2 bigger = %d,MaxDiff-File1gr = %f, maxDiffStFile1Gr = %d
     return;
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
     checkLong <<= clMultiplier;
  
 //    sleep(10);
-    cout << checkLong << endl;
+//    cout << checkLong << endl;
     if (argc > 1)
     {
         opt = argv[1];
